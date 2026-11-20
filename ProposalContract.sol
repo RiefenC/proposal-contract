@@ -2,6 +2,7 @@
 pragma solidity ^0.8.18;
 
 contract ProposalContract {
+    uint256 private counter; // Keeps track of the proposal ids
 
     struct Proposal {
         string title; // Title of the proposal
