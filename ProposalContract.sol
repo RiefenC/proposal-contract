@@ -2,6 +2,8 @@
 pragma solidity ^0.8.18;
 
 contract ProposalContract {
+    // ****************** Data ***********************
+
     address owner; // Owner of the contract
     uint256 private counter; // Keeps track of the proposal ids
 
@@ -26,7 +28,7 @@ contract ProposalContract {
     }
 
     modifier onlyOwner() {
-        require(msg.sender == owner, "Only the owner can create proposals");
+        require(msg.sender == owner, "Only the owner can do this");
         _;
     }
 
@@ -35,17 +37,28 @@ contract ProposalContract {
         _;
     }
 
+    modifier newVoter(address _address) {
+        require(!isVoted(_address), "Address has already voted");
+        _;
+    }
+
+    // ****************** Execute Functions ***********************
+
+    function setOwner(address new_owner) external onlyOwner {
+        owner = new_owner;
+    }
+
     function create(string calldata _title, string calldata _description, uint256 _total_vote_to_end) external onlyOwner {
         counter += 1;
         proposal_history[counter] = Proposal(_title, _description, 0, 0, 0, _total_vote_to_end, false, true);
     }
 
-    function vote(uint8 choice) external {
-        // First part
+    function vote(uint8 choice) external active newVoter(msg.sender) {
         Proposal storage proposal = proposal_history[counter];
         uint256 total_vote = proposal.approve + proposal.reject + proposal.pass;
 
-        // Second part
+        voted_addresses.push(msg.sender);
+
         if (choice == 1) {
             proposal.approve += 1;
             proposal.current_state = calculateCurrentState();
@@ -57,9 +70,9 @@ contract ProposalContract {
             proposal.current_state = calculateCurrentState();
         }
 
-        // Third part
         if ((proposal.total_vote_to_end - total_vote == 1) && (choice == 1 || choice == 2 || choice == 0)) {
             proposal.is_active = false;
+            voted_addresses = [owner];
         }
     }
 }
