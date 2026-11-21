@@ -76,6 +76,10 @@ contract ProposalContract {
         }
     }
 
+    function terminateProposal() external onlyOwner active {
+        proposal_history[counter].is_active = false;
+    }
+
     // ****************** Helper Functions ***********************
 
     // Custom logic: two-thirds majority of approve and reject votes, pass votes count as abstentions
@@ -93,12 +97,22 @@ contract ProposalContract {
         return approve * 3 >= decisive_votes * 2;
     }
 
-    function isVoted(address _address) private view returns (bool) {
-        for (uint256 i = 0; i < voted_addresses.length; i++) {
+    // ****************** Query Functions ***********************
+
+    function isVoted(address _address) public view returns (bool) {
+        for (uint i = 0; i < voted_addresses.length; i++) {
             if (voted_addresses[i] == _address) {
                 return true;
             }
         }
         return false;
+    }
+
+    function getCurrentProposal() external view returns(Proposal memory) {
+        return proposal_history[counter];
+    }
+
+    function getProposal(uint256 number) external view returns(Proposal memory) {
+        return proposal_history[number];
     }
 }
