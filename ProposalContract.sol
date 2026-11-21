@@ -78,23 +78,27 @@ contract ProposalContract {
 
     // ****************** Helper Functions ***********************
 
+    // Custom logic: two-thirds majority of approve and reject votes, pass votes count as abstentions
     function calculateCurrentState() private view returns(bool) {
         Proposal storage proposal = proposal_history[counter];
 
         uint256 approve = proposal.approve;
         uint256 reject = proposal.reject;
-        uint256 pass = proposal.pass;
+        uint256 decisive_votes = approve + reject;
 
-        if (proposal.pass % 2 == 1) {
-            pass += 1;
-        }
-
-        pass = pass / 2;
-
-        if (approve > reject + pass) {
-            return true;
-        } else {
+        if (decisive_votes == 0) {
             return false;
         }
+
+        return approve * 3 >= decisive_votes * 2;
+    }
+
+    function isVoted(address _address) private view returns (bool) {
+        for (uint256 i = 0; i < voted_addresses.length; i++) {
+            if (voted_addresses[i] == _address) {
+                return true;
+            }
+        }
+        return false;
     }
 }
